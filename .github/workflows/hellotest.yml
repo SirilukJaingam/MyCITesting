@@ -1,21 +1,30 @@
-name: C/C++ CI
+name: Download and Save File
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push]
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-test:
-
-    runs-on: ubuntu-latest
+  download-file:
+    runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: install cppunit
-      run: sudo apt install -y libcppunit-dev
-    - name: make
-      run: make
-    - name: make test
-      run: make test
+      - name: Create download directory
+        run: |
+          if (-Not (Test-Path -Path "D:\testload")) {
+            New-Item -ItemType Directory -Path "D:\testload"
+          }
+
+      - name: Download file from GitHub release
+        shell: pwsh
+        run: |
+          $url = "https://github.com/<owner>/<repo>/releases/download/<tag>/Python_2DB.exe"
+          $output = "D:\testload\Python_2DB.exe"
+          Invoke-WebRequest -Uri $url -OutFile $output
+
+      - name: Upload exe to artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Python_2DB
+          path: "**/Python_2DB.exe" 
